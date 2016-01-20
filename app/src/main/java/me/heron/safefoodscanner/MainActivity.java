@@ -38,6 +38,7 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.vision.MultiProcessor;
+import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
@@ -45,7 +46,7 @@ import java.io.IOException;
 import me.heron.safefoodscanner.ui.camera.CameraSource;
 import me.heron.safefoodscanner.ui.camera.CameraSourcePreview;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements BarcodeDetectedCallback {
 
     private static final String TAG = "MainActivity";
 
@@ -145,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
         Context context = getApplicationContext();
 
         BarcodeDetector barcodeDetector = new BarcodeDetector.Builder(context).build();
-        BarcodeTrackerFactory barcodeFactory = new BarcodeTrackerFactory();
+        BarcodeTrackerFactory barcodeFactory = new BarcodeTrackerFactory(this);
         barcodeDetector.setProcessor(
                 new MultiProcessor.Builder<>(barcodeFactory).build());
 
@@ -282,6 +283,20 @@ public class MainActivity extends AppCompatActivity {
                     GoogleApiAvailability.getInstance().getErrorDialog(this, code, RC_HANDLE_GMS);
             dlg.show();
         }
+
+    }
+
+    @Override
+    public void barcodeDetectedCallback(Barcode barcode) {
+        Log.d(TAG, "got barcode: " + barcode.rawValue);
+        analysisBarcode(barcode);
+    }
+
+    private void analysisBarcode(Barcode barcode) {
+        showProcessingLayout();
+    }
+
+    private void showProcessingLayout() {
 
     }
 

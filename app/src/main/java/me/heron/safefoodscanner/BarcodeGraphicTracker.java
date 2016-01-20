@@ -22,8 +22,6 @@ import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Tracker;
 import com.google.android.gms.vision.barcode.Barcode;
 
-import me.heron.safefoodscanner.ui.camera.GraphicOverlay;
-
 /**
  * Generic tracker which is used for tracking or reading a barcode (and can really be used for
  * any type of item).  This is used to receive newly detected items, add a graphical representation
@@ -33,16 +31,19 @@ import me.heron.safefoodscanner.ui.camera.GraphicOverlay;
 class BarcodeGraphicTracker extends Tracker<Barcode> {
 
     private static final String TAG = "BarcodeGraphicTracker";
+    private BarcodeDetectedCallback mBarcodeDetectedCallback;
 
-    BarcodeGraphicTracker() {
+    BarcodeGraphicTracker(BarcodeDetectedCallback barcodeDetectedCallback) {
+        mBarcodeDetectedCallback = barcodeDetectedCallback;
     }
 
     /**
      * Start tracking the detected item instance within the item overlay.
      */
     @Override
-    public void onNewItem(int id, Barcode item) {
-        Log.d(TAG, "barcode rawValue (new item): " + item.rawValue);
+    public void onNewItem(int id, Barcode barcode) {
+        Log.d(TAG, "barcode rawValue (new item): " + barcode.rawValue);
+        mBarcodeDetectedCallback.barcodeDetectedCallback(barcode);
     }
 
     /**
