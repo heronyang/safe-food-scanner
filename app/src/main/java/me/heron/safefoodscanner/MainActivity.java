@@ -40,6 +40,8 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
+import com.parse.Parse;
+import com.parse.ParseObject;
 
 import java.io.IOException;
 
@@ -58,6 +60,8 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     // result of the request.
     private static final int RC_HANDLE_CAMERA_PERMISSION = 2;
 
+    private static final int REQUEST_CODE_RESULT_ACTIVITY = 20;
+
     private static final String BarcodeObject = "Barcode";
 
     private CameraSource mCameraSource;
@@ -73,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
         setupLayout();
         setupCameraPermission();
         setupHelpers();
+
+        setupParse();
 
     }
 
@@ -97,6 +103,13 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     private void setupHelpers() {
 
         scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
+
+    }
+
+    private void setupParse() {
+
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this);
 
     }
 
@@ -297,10 +310,21 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
         showProcessingLayout();
 
         Intent intent = new Intent(this, ResultActivity.class);
-        intent.putExtra("result", true);
+        intent.putExtra("isSafe", false);
         intent.putExtra("name", "Dummy Food");
 
-        startActivity(intent);
+        startActivityForResult(intent, REQUEST_CODE_RESULT_ACTIVITY);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == REQUEST_CODE_RESULT_ACTIVITY) {
+            Log.d(TAG, "back to main page from result page");
+        }
+
+        super.onActivityResult(requestCode, resultCode, data);
 
     }
 

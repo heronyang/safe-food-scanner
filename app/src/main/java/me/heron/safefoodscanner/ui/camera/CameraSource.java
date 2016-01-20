@@ -224,6 +224,7 @@ public class CameraSource {
             }
             mCameraSource.mRequestedPreviewWidth = width;
             mCameraSource.mRequestedPreviewHeight = height;
+
             return this;
         }
 
