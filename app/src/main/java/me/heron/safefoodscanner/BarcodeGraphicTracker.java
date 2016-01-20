@@ -43,7 +43,7 @@ class BarcodeGraphicTracker extends Tracker<Barcode> {
     @Override
     public void onNewItem(int id, Barcode barcode) {
         Log.d(TAG, "barcode rawValue (new item): " + barcode.rawValue);
-        mBarcodeDetectedCallback.barcodeDetectedCallback(barcode);
+        mBarcodeDetectedCallback.getBarcode(barcode);
     }
 
     /**

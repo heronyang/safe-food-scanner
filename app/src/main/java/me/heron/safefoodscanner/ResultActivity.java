@@ -16,6 +16,7 @@ public class ResultActivity extends AppCompatActivity {
     private static final String TAG = "ResultActivity";
 
     private boolean isSafe;
+    private String name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,20 +25,31 @@ public class ResultActivity extends AppCompatActivity {
         setContentView(R.layout.activity_result);
 
         isSafe = getIntent().getBooleanExtra("isSafe", false);
+        name = getIntent().getStringExtra("name");
+
+        setupActionBar();
         showResultLayout();
 
+    }
+
+    private void showResultLayout() {
+        String resultText = name + " ";
+        if (isSafe) {
+            resultText += "Safe";
+        } else {
+            resultText += "Not Safe";
+        }
+        TextView resultTextView = (TextView) findViewById(R.id.textView);
+        resultTextView.setText(resultText);
+    }
+
+    private void setupActionBar() {
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setDisplayShowHomeEnabled(true);
         }
-
-    }
-
-    private void showResultLayout() {
-        TextView resultText = (TextView) findViewById(R.id.textView);
-        resultText.setText(isSafe? "Safe" : "Not Safe");
     }
 
     @Override
@@ -45,7 +57,6 @@ public class ResultActivity extends AppCompatActivity {
 
         switch (item.getItemId()) {
             case android.R.id.home:
-                // NOTE: one can pass extra back to main activity
                 finish();
         }
 

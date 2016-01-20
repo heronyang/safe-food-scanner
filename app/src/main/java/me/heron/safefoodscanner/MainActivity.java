@@ -40,15 +40,13 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
-import com.parse.Parse;
-import com.parse.ParseObject;
 
 import java.io.IOException;
 
 import me.heron.safefoodscanner.ui.camera.CameraSource;
 import me.heron.safefoodscanner.ui.camera.CameraSourcePreview;
 
-public class MainActivity extends AppCompatActivity implements BarcodeDetectedCallback {
+public class MainActivity extends AppCompatActivity implements BarcodeDetectedCallback, ParseAPICallback {
 
     private static final String TAG = "MainActivity";
 
@@ -61,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     private static final int RC_HANDLE_CAMERA_PERMISSION = 2;
 
     private static final int REQUEST_CODE_RESULT_ACTIVITY = 20;
+    private static final int REQUEST_CODE_PRODUCT_NOT_FOUND_ACTIVITY = 21;
 
     private static final String BarcodeObject = "Barcode";
 
@@ -68,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     private CameraSourcePreview mPreview;
 
     private ScaleGestureDetector scaleGestureDetector;
+    private ParseAPIAdaptor parseAPIAdaptor;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -77,8 +77,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
         setupLayout();
         setupCameraPermission();
         setupHelpers();
-
-        setupParse();
 
     }
 
@@ -103,13 +101,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     private void setupHelpers() {
 
         scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
-
-    }
-
-    private void setupParse() {
-
-        Parse.enableLocalDatastore(this);
-        Parse.initialize(this);
+        parseAPIAdaptor = new ParseAPIAdaptor(this);
 
     }
 
@@ -300,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     }
 
     @Override
-    public void barcodeDetectedCallback(Barcode barcode) {
+    public void getBarcode(Barcode barcode) {
         Log.d(TAG, "got barcode: " + barcode.rawValue);
         analysisBarcode(barcode);
     }
@@ -309,26 +301,39 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
         showProcessingLayout();
 
-        Intent intent = new Intent(this, ResultActivity.class);
-        intent.putExtra("isSafe", false);
-        intent.putExtra("name", "Dummy Food");
-
-        startActivityForResult(intent, REQUEST_CODE_RESULT_ACTIVITY);
+        parseAPIAdaptor.checkIsTransFatContained(barcode);
 
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        if (requestCode == REQUEST_CODE_RESULT_ACTIVITY) {
-            Log.d(TAG, "back to main page from result page");
-        }
-
         super.onActivityResult(requestCode, resultCode, data);
 
     }
 
     private void showProcessingLayout() {
+
+    }
+
+    @Override
+    public void checkedIsTransFatContained(boolean isTransFatContained, String name) {
+
+        boolean isSafe = !isTransFatContained;
+
+        Intent intent = new Intent(this, ResultActivity.class);
+        intent.putExtra("isSafe", isSafe);
+        intent.putExtra("name", name);
+
+        startActivityForResult(intent, REQUEST_CODE_RESULT_ACTIVITY);
+
+    }
+
+    @Override
+    public void productNotFound(Barcode barcode) {
+
+        Intent intent = new Intent(this, ProductNotFoundActivity.class);
+        startActivityForResult(intent, REQUEST_CODE_PRODUCT_NOT_FOUND_ACTIVITY);
 
     }
 
