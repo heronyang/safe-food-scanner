@@ -293,7 +293,15 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     }
 
     private void analysisBarcode(Barcode barcode) {
+
         showProcessingLayout();
+
+        Intent intent = new Intent(this, ResultActivity.class);
+        intent.putExtra("result", true);
+        intent.putExtra("name", "Dummy Food");
+
+        startActivity(intent);
+
     }
 
     private void showProcessingLayout() {
