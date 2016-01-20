@@ -16,6 +16,8 @@
  */
 package me.heron.safefoodscanner;
 
+import android.util.Log;
+
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Tracker;
 import com.google.android.gms.vision.barcode.Barcode;
@@ -29,12 +31,10 @@ import me.heron.safefoodscanner.ui.camera.GraphicOverlay;
  * goes away.
  */
 class BarcodeGraphicTracker extends Tracker<Barcode> {
-    private GraphicOverlay<BarcodeGraphic> mOverlay;
-    private BarcodeGraphic mGraphic;
 
-    BarcodeGraphicTracker(GraphicOverlay<BarcodeGraphic> overlay, BarcodeGraphic graphic) {
-        mOverlay = overlay;
-        mGraphic = graphic;
+    private static final String TAG = "BarcodeGraphicTracker";
+
+    BarcodeGraphicTracker() {
     }
 
     /**
@@ -42,7 +42,7 @@ class BarcodeGraphicTracker extends Tracker<Barcode> {
      */
     @Override
     public void onNewItem(int id, Barcode item) {
-        mGraphic.setId(id);
+        Log.d(TAG, "barcode rawValue (new item): " + item.rawValue);
     }
 
     /**
@@ -50,8 +50,6 @@ class BarcodeGraphicTracker extends Tracker<Barcode> {
      */
     @Override
     public void onUpdate(Detector.Detections<Barcode> detectionResults, Barcode item) {
-        mOverlay.add(mGraphic);
-        mGraphic.updateItem(item);
     }
 
     /**
@@ -61,7 +59,6 @@ class BarcodeGraphicTracker extends Tracker<Barcode> {
      */
     @Override
     public void onMissing(Detector.Detections<Barcode> detectionResults) {
-        mOverlay.remove(mGraphic);
     }
 
     /**
@@ -70,7 +67,7 @@ class BarcodeGraphicTracker extends Tracker<Barcode> {
      */
     @Override
     public void onDone() {
-        mOverlay.remove(mGraphic);
     }
+
 }
 
