@@ -9,4 +9,5 @@
     <string name="reportErrorText">回報錯誤</string>
     <string name="productNotFoundText">查無此產品</string>
     <string name="helpUsButtonText">協助我們</string>
+    <string name="WaitText">Please Wait...</string>
 </resources>

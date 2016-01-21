@@ -10,6 +10,8 @@ import com.parse.ParseQuery;
 
 public class ParseAPIAdaptor {
 
+    // TODO: detect network availability
+
     private static final String TAG = "ParseAPIAdaptor";
     private static ParseAPICallback mParseAPICallback;
 
