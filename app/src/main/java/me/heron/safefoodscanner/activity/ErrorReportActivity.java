@@ -1,21 +1,25 @@
 package me.heron.safefoodscanner.activity;
 
 import android.app.ActionBar;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ImageView;
 
+import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ProgressCallback;
 import com.parse.SaveCallback;
 
@@ -25,6 +29,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import me.heron.safefoodscanner.Constants;
 import me.heron.safefoodscanner.Parse.ParseProxyObject;
 import me.heron.safefoodscanner.R;
 
@@ -36,6 +41,16 @@ public class ErrorReportActivity extends AppCompatActivity {
 
     private ImageView mImageView;
     private ParseProxyObject productItem;
+    private String tempImageFilepath;
+    private String barcodeValue;
+
+    private ParseFile uploadedParseImage;
+
+    private enum ResponseIsTransFatContained {
+        YES, NO, DONT_KNOW
+    }
+
+    private ResponseIsTransFatContained responseIsTransFatContained;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,29 +81,30 @@ public class ErrorReportActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         productItem = (ParseProxyObject) intent.getSerializableExtra("productItem");
+        barcodeValue = intent.getStringExtra("barcodeValue");
 
     }
 
     private void startTakePicture() {
 
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+        if (takePictureIntent.resolveActivity(getPackageManager()) == null) {
+            return;
+        }
 
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException e) {
-                Log.e(TAG, e.getMessage());
-            }
+        File photoFile = null;
+        try {
+            photoFile = createImageFile();
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage());
+        }
 
-            if (photoFile != null) {
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                        Uri.fromFile(photoFile));
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            } else {
-                Log.d(TAG, "photo file is null");
-            }
-
+        if (photoFile != null) {
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                    Uri.fromFile(photoFile));
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        } else {
+            Log.d(TAG, "photo file is null");
         }
 
     }
@@ -96,39 +112,87 @@ public class ErrorReportActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            /*
-            Bundle extras = data.getExtras();
-            Bitmap bitmap = (Bitmap) extras.get("data");
-            mImageView.setImageBitmap(bitmap);
-            uploadImage(bitmap);
-            */
-            Log.d(TAG, "photo saved");
-            readImage();
+
+            showDialogForIsTransFatContained();
+
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void readImage() {
+    private void showDialogForIsTransFatContained() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setMessage("")
+                .setTitle("您認為這商品含有反式脂肪嗎？");
+
+        builder.setPositiveButton("有的", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                responseIsTransFatContained = ResponseIsTransFatContained.YES;
+                uploadErrorReport();
+            }
+        });
+
+        builder.setNegativeButton("沒有", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                responseIsTransFatContained = ResponseIsTransFatContained.NO;
+                uploadErrorReport();
+            }
+        });
+
+        builder.setNeutralButton("不知道", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                responseIsTransFatContained = ResponseIsTransFatContained.DONT_KNOW;
+                uploadErrorReport();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+    }
+
+    private void uploadErrorReport() {
+        Bitmap bitmap = readImage();
+        mImageView.setImageBitmap(bitmap);
+        uploadImage(bitmap);
+    }
+
+    private Bitmap readImage() {
+
         Bitmap bitmap = null;
+
         try {
-            bitmap = BitmapFactory.decodeStream(new java.net.URL(mCurrentPhotoPath).openStream());
+            bitmap = BitmapFactory.decodeStream(new java.net.URL(tempImageFilepath).openStream());
         } catch (IOException e) {
             e.printStackTrace();
             Log.e(TAG, "image file read error");
         }
-        mImageView.setImageBitmap(bitmap);
-        Log.d(TAG, "current photo path: " + mCurrentPhotoPath);
+
+        Log.d(TAG, "current photo path: " + tempImageFilepath);
+        return bitmap;
+
     }
 
     private void uploadImage(Bitmap bitmap) {
 
         byte[] image = compressImage(bitmap);
 
-        ParseFile file = new ParseFile("tmp.jpg", image);
+        uploadedParseImage = uploadParseImage(image);
+        saveNewUnverifiedProductItem();
+
+    }
+
+    private ParseFile uploadParseImage(byte[] image) {
+
+        ParseFile file = new ParseFile(barcodeValue + ".jpg", image);
         file.saveInBackground(
                 new SaveCallback() {
                     public void done(ParseException e) {
-                        Log.d(TAG, "done " + e.getMessage());
+
+                        if (e != null) {
+                            Log.d(TAG, e.getMessage());
+                        }
+
                         finish();
                     }
                 }, new ProgressCallback() {
@@ -138,29 +202,88 @@ public class ErrorReportActivity extends AppCompatActivity {
                 }
         );
 
+        return file;
+
+    }
+
+    private void saveNewUnverifiedProductItem() {
+
+        if (productItem == null) {
+
+            saveNewUnverifiedProductItemWithoutExistingProductItem();
+
+        } else {
+
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("ProductItem");
+            query.getInBackground(productItem.getObjectId(), new GetCallback<ParseObject>() {
+                public void done(ParseObject existingProductItem, ParseException e) {
+                    if (e == null) {
+
+                        saveNewUnverifiedProductItemWithExistingProductItem(existingProductItem);
+
+                    } else {
+
+                        Log.e(TAG, e.getMessage());
+
+                    }
+                }
+            });
+
+        }
+
+    }
+
+    private void saveNewUnverifiedProductItemWithoutExistingProductItem() {
+
         ParseObject unverifiedProductItem = new ParseObject("UnverifiedProductItem");
 
-        unverifiedProductItem.put("isTransFatContained", false);
-        unverifiedProductItem.put("ingredientImage", file);
-        /*unverifiedProductItem.put("existingProductItem", productItem);*/
+        putGeneralNewUnverifiedProductItemColumns(unverifiedProductItem);
         unverifiedProductItem.saveInBackground();
+
+    }
+
+    private void saveNewUnverifiedProductItemWithExistingProductItem(ParseObject existingProductItem) {
+
+        ParseObject unverifiedProductItem = new ParseObject("UnverifiedProductItem");
+
+        putGeneralNewUnverifiedProductItemColumns(unverifiedProductItem);
+        unverifiedProductItem.put("existingProductItem", existingProductItem);
+
+        unverifiedProductItem.saveInBackground();
+
+    }
+
+    private void putGeneralNewUnverifiedProductItemColumns(ParseObject unverifiedProductItem) {
+
+        switch (responseIsTransFatContained) {
+
+            case YES:
+                unverifiedProductItem.put("isTransFatContained", true);
+                break;
+            case NO:
+                unverifiedProductItem.put("isTransFatContained", false);
+                break;
+            case DONT_KNOW:
+                break;
+
+        }
+
+        unverifiedProductItem.put("ingredientImage", uploadedParseImage);
+        unverifiedProductItem.put("barcode", barcodeValue);
 
     }
 
     private byte[] compressImage(Bitmap bitmap) {
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, Constants.COMPRESS_QUALITY, stream);
         return stream.toByteArray();
 
     }
 
-    String mCurrentPhotoPath;
-
     private File createImageFile() throws IOException {
 
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "SafeFoodScanner_" + timeStamp + "_";
+        String imageFileName = getString(R.string.tempImageFilename);
         File storageDir = Environment.getExternalStorageDirectory();
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
@@ -168,10 +291,16 @@ public class ErrorReportActivity extends AppCompatActivity {
                 storageDir      /* directory */
         );
 
-        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
-        Log.d(TAG, "create image file, get path: " + mCurrentPhotoPath);
+        storeTempImageFilePath(image);
+
         return image;
 
+    }
+
+    private void storeTempImageFilePath(File image)
+    {
+        tempImageFilepath = "file:" + image.getAbsolutePath();
+        Log.d(TAG, "create image file, get path: " + tempImageFilepath);
     }
 
     @Override

@@ -12,4 +12,5 @@
     <string name="WaitText">Please Wait...</string>
     <string name="networkFailureText">請檢查網路連線</string>
     <string name="processingText">讀取中</string>
+    <string name="tempImageFilename">SafeFoodScanner_Temp</string>
 </resources>

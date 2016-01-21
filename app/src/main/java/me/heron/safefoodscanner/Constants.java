@@ -7,4 +7,6 @@ public class Constants {
 
     public static final int BUZZ_LENGTH_MILLISECOND = 300;
 
+    public static final int COMPRESS_QUALITY = 80;
+
 }

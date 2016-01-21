@@ -23,6 +23,7 @@ public class ResultActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_ERROR_REPORT_ACTIVITY = 22;
     private ParseProxyObject productItem;
+    private String barcodeValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +53,8 @@ public class ResultActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        isProductNotFound = getIntent().getBooleanExtra("isProductNotFound", false);
+        isProductNotFound = intent.getBooleanExtra("isProductNotFound", false);
+        barcodeValue = intent.getStringExtra("barcodeValue");
 
         if (!isProductNotFound) {
             productItem = (ParseProxyObject) intent.getSerializableExtra("productItem");
@@ -130,6 +132,7 @@ public class ResultActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this, ErrorReportActivity.class);
         intent.putExtra("productItem", productItem);
+        intent.putExtra("barcodeValue", barcodeValue);
         startActivityForResult(intent, REQUEST_CODE_ERROR_REPORT_ACTIVITY);
 
     }

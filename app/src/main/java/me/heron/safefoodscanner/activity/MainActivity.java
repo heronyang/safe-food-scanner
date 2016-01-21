@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     private ParseAPIAdaptor parseAPIAdaptor;
 
     private boolean isFreeForChecking = false;
+    private String barcodeValue;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -323,11 +324,11 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
     @Override
     public void getBarcode(Barcode barcode) {
-        Log.d(TAG, "got barcode: " + barcode.rawValue);
 
         if (!isFreeForChecking) {
             freeLayoutForChecking();
             buzz();
+            saveBarcodeValue(barcode);
             analysisBarcode(barcode);
         }
 
@@ -344,6 +345,10 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     private void buzz() {
         Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(Constants.BUZZ_LENGTH_MILLISECOND);
+    }
+
+    private void saveBarcodeValue(Barcode barcode) {
+        barcodeValue = barcode.rawValue;
     }
 
     private void analysisBarcode(Barcode barcode) {
@@ -383,6 +388,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
         intent.putExtra("isProductNotFound", false);
         intent.putExtra("productItem", productItemProxy);
+        intent.putExtra("barcodeValue", barcodeValue);
 
         startActivityForResult(intent, REQUEST_CODE_RESULT_ACTIVITY);
 
@@ -393,6 +399,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
         Intent intent = new Intent(this, ResultActivity.class);
         intent.putExtra("isProductNotFound", true);
+        intent.putExtra("barcodeValue", barcodeValue);
         startActivityForResult(intent, REQUEST_CODE_RESULT_ACTIVITY);
 
     }
