@@ -1,13 +1,16 @@
 package me.heron.safefoodscanner.activity;
 
+import android.app.ActionBar;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.ImageView;
 
 import com.parse.ParseException;
@@ -22,6 +25,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import me.heron.safefoodscanner.Parse.ParseProxyObject;
 import me.heron.safefoodscanner.R;
 
 public class ErrorReportActivity extends AppCompatActivity {
@@ -31,7 +35,7 @@ public class ErrorReportActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_CAPTURE = 23;
 
     private ImageView mImageView;
-    private String existingProductItemParseId;
+    private ParseProxyObject productItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,15 +45,27 @@ public class ErrorReportActivity extends AppCompatActivity {
 
         mImageView = (ImageView) findViewById(R.id.imageView);
 
+        setupActionBar();
         getIntentExtras();
         startTakePicture();
+
+    }
+
+    private void setupActionBar() {
+
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setHomeButtonEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayShowHomeEnabled(true);
+        }
 
     }
 
     private void getIntentExtras() {
 
         Intent intent = getIntent();
-        existingProductItemParseId = intent.getStringExtra("existingProductItemParseId");
+        productItem = (ParseProxyObject) intent.getSerializableExtra("productItem");
 
     }
 
@@ -61,14 +77,16 @@ public class ErrorReportActivity extends AppCompatActivity {
             File photoFile = null;
             try {
                 photoFile = createImageFile();
-            } catch (IOException ex) {
-                Log.e(TAG, ex.getMessage());
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
             }
 
             if (photoFile != null) {
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
                         Uri.fromFile(photoFile));
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            } else {
+                Log.d(TAG, "photo file is null");
             }
 
         }
@@ -78,23 +96,40 @@ public class ErrorReportActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            /*
             Bundle extras = data.getExtras();
             Bitmap bitmap = (Bitmap) extras.get("data");
             mImageView.setImageBitmap(bitmap);
             uploadImage(bitmap);
+            */
+            Log.d(TAG, "photo saved");
+            readImage();
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void readImage() {
+        Bitmap bitmap = null;
+        try {
+            bitmap = BitmapFactory.decodeStream(new java.net.URL(mCurrentPhotoPath).openStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(TAG, "image file read error");
+        }
+        mImageView.setImageBitmap(bitmap);
+        Log.d(TAG, "current photo path: " + mCurrentPhotoPath);
     }
 
     private void uploadImage(Bitmap bitmap) {
 
         byte[] image = compressImage(bitmap);
 
-        ParseFile file = new ParseFile("tmp.png", image);
+        ParseFile file = new ParseFile("tmp.jpg", image);
         file.saveInBackground(
                 new SaveCallback() {
                     public void done(ParseException e) {
                         Log.d(TAG, "done " + e.getMessage());
+                        finish();
                     }
                 }, new ProgressCallback() {
                     public void done(Integer percentDone) {
@@ -107,7 +142,7 @@ public class ErrorReportActivity extends AppCompatActivity {
 
         unverifiedProductItem.put("isTransFatContained", false);
         unverifiedProductItem.put("ingredientImage", file);
-        unverifiedProductItem.put("existingProductItem", existingProductItemParseId);
+        /*unverifiedProductItem.put("existingProductItem", productItem);*/
         unverifiedProductItem.saveInBackground();
 
     }
@@ -115,7 +150,7 @@ public class ErrorReportActivity extends AppCompatActivity {
     private byte[] compressImage(Bitmap bitmap) {
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
         return stream.toByteArray();
 
     }
@@ -123,20 +158,33 @@ public class ErrorReportActivity extends AppCompatActivity {
     String mCurrentPhotoPath;
 
     private File createImageFile() throws IOException {
-        // Create an image file name
+
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
+        String imageFileName = "SafeFoodScanner_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStorageDirectory();
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
 
-        // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        Log.d(TAG, "create image file, get path: " + mCurrentPhotoPath);
         return image;
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+
     }
 
 }

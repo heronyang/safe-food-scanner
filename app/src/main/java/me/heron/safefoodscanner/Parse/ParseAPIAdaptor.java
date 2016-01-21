@@ -1,6 +1,7 @@
 package me.heron.safefoodscanner.Parse;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.vision.barcode.Barcode;
 import com.parse.GetCallback;
@@ -29,22 +30,18 @@ public class ParseAPIAdaptor {
         query.whereEqualTo("barcode", barcodeValue);
         query.getFirstInBackground(new GetCallback<ParseObject>() {
             public void done(ParseObject productItem, ParseException e) {
-                Log.d(TAG, "parse done");
                 if (e == null) {
 
-                    boolean isTransFatContained = productItem.getBoolean("isTransFatContained");
-                    String name = productItem.getString("name");
-                    String parseId = productItem.getObjectId();
-
-                    Log.d(TAG, "name: " + name + ", objectId: " + parseId);
-
-                    mParseAPICallback.checkedIsTransFatContained(isTransFatContained, name, parseId);
+                    mParseAPICallback.checkedIsTransFatContained(productItem);
 
                 } else {
 
-                    Log.d(TAG, "Error: " + e.getMessage());
+                    Log.e(TAG, "Error: " + e.getMessage());
+                    Log.e(TAG, "Error: code -> " + e.getCode());
                     if (e.getCode() == ParseException.OBJECT_NOT_FOUND) {
                         mParseAPICallback.productNotFound(barcode);
+                    } else if (e.getCode() == ParseException.TIMEOUT) {
+                        Log.e(TAG, "Network Is Down");
                     }
 
                 }

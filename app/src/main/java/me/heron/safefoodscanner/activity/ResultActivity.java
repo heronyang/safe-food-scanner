@@ -10,6 +10,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.parse.ParseObject;
+
+import me.heron.safefoodscanner.Parse.ParseProxyObject;
 import me.heron.safefoodscanner.R;
 
 public class ResultActivity extends AppCompatActivity {
@@ -18,11 +21,8 @@ public class ResultActivity extends AppCompatActivity {
 
     private boolean isProductNotFound;
 
-    private boolean isSafe;
-    private String name;
-    private String parseId;
-
     private static final int REQUEST_CODE_ERROR_REPORT_ACTIVITY = 22;
+    private ParseProxyObject productItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,12 +53,9 @@ public class ResultActivity extends AppCompatActivity {
         Intent intent = getIntent();
 
         isProductNotFound = getIntent().getBooleanExtra("isProductNotFound", false);
-        Log.d(TAG, "product not found");
 
         if (!isProductNotFound) {
-            isSafe = intent.getBooleanExtra("isSafe", false);
-            name = intent.getStringExtra("name");
-            parseId = intent.getStringExtra("parseId");
+            productItem = (ParseProxyObject) intent.getSerializableExtra("productItem");
         }
 
     }
@@ -74,6 +71,10 @@ public class ResultActivity extends AppCompatActivity {
     }
 
     private void showNormalResultLayout() {
+
+        boolean isSafe = !productItem.getBoolean("isTransFatContained");
+        String name = productItem.getString("name");
+
         String resultText = name + " ";
         if (isSafe) {
             resultText += "Safe";
@@ -82,6 +83,7 @@ public class ResultActivity extends AppCompatActivity {
         }
         TextView resultTextView = (TextView) findViewById(R.id.resultTextView);
         resultTextView.setText(resultText);
+
     }
 
     private void showNotFoundResultLayout() {
@@ -110,6 +112,7 @@ public class ResultActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -126,8 +129,23 @@ public class ResultActivity extends AppCompatActivity {
         Log.d(TAG, "report error clicked");
 
         Intent intent = new Intent(this, ErrorReportActivity.class);
-        intent.putExtra("existingProductItemParseId", parseId);
+        intent.putExtra("productItem", productItem);
         startActivityForResult(intent, REQUEST_CODE_ERROR_REPORT_ACTIVITY);
 
     }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        Log.d(TAG, "onActivityResult, get code: " + REQUEST_CODE_ERROR_REPORT_ACTIVITY);
+
+        if (requestCode == REQUEST_CODE_ERROR_REPORT_ACTIVITY) {
+            finish();
+        }
+
+        super.onActivityResult(requestCode, resultCode, data);
+
+    }
+
 }

@@ -25,7 +25,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -41,12 +45,14 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
+import com.parse.ParseObject;
 
 import java.io.IOException;
 
 import me.heron.safefoodscanner.Constants;
 import me.heron.safefoodscanner.Parse.ParseAPIAdaptor;
 import me.heron.safefoodscanner.Parse.ParseAPICallback;
+import me.heron.safefoodscanner.Parse.ParseProxyObject;
 import me.heron.safefoodscanner.R;
 import me.heron.safefoodscanner.barcode.BarcodeDetectedCallback;
 import me.heron.safefoodscanner.barcode.BarcodeTrackerFactory;
@@ -85,6 +91,8 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
         setupCameraPermission();
         setupHelpers();
 
+        checkNetworkAvailable();
+
     }
 
     private void setupLayout() {
@@ -109,6 +117,21 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
         scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
         parseAPIAdaptor = new ParseAPIAdaptor(this);
+
+    }
+
+    private void checkNetworkAvailable() {
+        if (!isNetworkAvailable()) {
+            Toast.makeText(getApplicationContext(), R.string.networkFailureText, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private boolean isNetworkAvailable() {
+
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = connectivityManager.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
 
     }
 
@@ -307,6 +330,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
             buzz();
             analysisBarcode(barcode);
         }
+
     }
 
     private void freeLayoutForChecking() {
@@ -342,25 +366,23 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     }
 
     private void showProcessingLayout() {
-
     }
 
     @Override
-    public void checkedIsTransFatContained(boolean isTransFatContained, String name, String parseId) {
+    public void checkedIsTransFatContained(ParseObject productItem) {
 
-        startResultLayout(isTransFatContained, name, parseId);
+        startResultLayout(productItem);
 
     }
 
-    private void startResultLayout(boolean isTransFatContained, String name, String parseId) {
+    private void startResultLayout(ParseObject productItem) {
 
-        boolean isSafe = !isTransFatContained;
+        ParseProxyObject productItemProxy = new ParseProxyObject(productItem);
 
         Intent intent = new Intent(this, ResultActivity.class);
+
         intent.putExtra("isProductNotFound", false);
-        intent.putExtra("isSafe", isSafe);
-        intent.putExtra("name", name);
-        intent.putExtra("parseId", parseId);
+        intent.putExtra("productItem", productItemProxy);
 
         startActivityForResult(intent, REQUEST_CODE_RESULT_ACTIVITY);
 
@@ -428,5 +450,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
             mCameraSource.doZoom(detector.getScaleFactor());
         }
     }
+
 }
 
