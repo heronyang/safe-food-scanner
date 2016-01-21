@@ -5,4 +5,7 @@
     <string name="low_storage_error">Face detector dependencies cannot be downloaded due to low device storage</string>
     <string name="no_camera_permission">This application cannot run because it does not have the camera permission. The application will now exit.</string>
     <string name="title_activity_product_not_found">ProductNotFoundActivity</string>
+    <string name="scanAgainText">再掃一次</string>
+    <string name="reportErrorText">回報錯誤</string>
+    <string name="productNotFoundText">查無此產品</string>
 </resources>

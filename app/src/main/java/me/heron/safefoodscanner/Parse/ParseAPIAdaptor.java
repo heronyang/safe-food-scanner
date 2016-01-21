@@ -27,10 +27,17 @@ public class ParseAPIAdaptor {
         query.whereEqualTo("barcode", barcodeValue);
         query.getFirstInBackground(new GetCallback<ParseObject>() {
             public void done(ParseObject productItem, ParseException e) {
+                Log.d(TAG, "parse done");
                 if (e == null) {
-                    Log.d(TAG, "Retrieved " + productItem.get("objectId"));
-                    mParseAPICallback.checkedIsTransFatContained(productItem.getBoolean("isTransFatContained"),
-                            productItem.getString("name"));
+
+                    boolean isTransFatContained = productItem.getBoolean("isTransFatContained");
+                    String name = productItem.getString("name");
+                    String parseId = productItem.getObjectId();
+
+                    Log.d(TAG, "name: " + name + ", objectId: " + parseId);
+
+                    mParseAPICallback.checkedIsTransFatContained(isTransFatContained, name, parseId);
+
                 } else {
                     Log.d(TAG, "Error: " + e.getMessage());
                     if (e.getCode() == ParseException.OBJECT_NOT_FOUND) {

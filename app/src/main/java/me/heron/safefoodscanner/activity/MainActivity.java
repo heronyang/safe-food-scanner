@@ -26,6 +26,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -43,6 +44,7 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
 
+import me.heron.safefoodscanner.Constants;
 import me.heron.safefoodscanner.Parse.ParseAPIAdaptor;
 import me.heron.safefoodscanner.Parse.ParseAPICallback;
 import me.heron.safefoodscanner.R;
@@ -62,9 +64,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     // app-defined int constant. The callback method gets the
     // result of the request.
     private static final int RC_HANDLE_CAMERA_PERMISSION = 2;
-
     private static final int REQUEST_CODE_RESULT_ACTIVITY = 20;
-    private static final int REQUEST_CODE_PRODUCT_NOT_FOUND_ACTIVITY = 21;
 
     private static final String BarcodeObject = "Barcode";
 
@@ -73,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
     private ScaleGestureDetector scaleGestureDetector;
     private ParseAPIAdaptor parseAPIAdaptor;
+
+    private boolean isFreeForChecking = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -299,7 +301,25 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     @Override
     public void getBarcode(Barcode barcode) {
         Log.d(TAG, "got barcode: " + barcode.rawValue);
-        analysisBarcode(barcode);
+
+        if (!isFreeForChecking) {
+            freeLayoutForChecking();
+            buzz();
+            analysisBarcode(barcode);
+        }
+    }
+
+    private void freeLayoutForChecking() {
+        isFreeForChecking = true;
+    }
+
+    private void stopFreeLayoutForChecking() {
+        isFreeForChecking = false;
+    }
+
+    private void buzz() {
+        Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(Constants.BUZZ_LENGTH_MILLISECOND);
     }
 
     private void analysisBarcode(Barcode barcode) {
@@ -313,6 +333,10 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
+        if (requestCode == REQUEST_CODE_RESULT_ACTIVITY) {
+            stopFreeLayoutForChecking();
+        }
+
         super.onActivityResult(requestCode, resultCode, data);
 
     }
@@ -322,13 +346,21 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     }
 
     @Override
-    public void checkedIsTransFatContained(boolean isTransFatContained, String name) {
+    public void checkedIsTransFatContained(boolean isTransFatContained, String name, String parseId) {
+
+        startResultLayout(isTransFatContained, name, parseId);
+
+    }
+
+    private void startResultLayout(boolean isTransFatContained, String name, String parseId) {
 
         boolean isSafe = !isTransFatContained;
 
         Intent intent = new Intent(this, ResultActivity.class);
+        intent.putExtra("isProductNotFound", false);
         intent.putExtra("isSafe", isSafe);
         intent.putExtra("name", name);
+        intent.putExtra("parseId", parseId);
 
         startActivityForResult(intent, REQUEST_CODE_RESULT_ACTIVITY);
 
@@ -337,8 +369,9 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     @Override
     public void productNotFound(Barcode barcode) {
 
-        Intent intent = new Intent(this, ProductNotFoundActivity.class);
-        startActivityForResult(intent, REQUEST_CODE_PRODUCT_NOT_FOUND_ACTIVITY);
+        Intent intent = new Intent(this, ResultActivity.class);
+        intent.putExtra("isProductNotFound", true);
+        startActivityForResult(intent, REQUEST_CODE_RESULT_ACTIVITY);
 
     }
 
