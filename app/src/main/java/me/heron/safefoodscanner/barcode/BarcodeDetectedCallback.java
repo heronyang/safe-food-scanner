@@ -1,4 +1,4 @@
-package me.heron.safefoodscanner;
+package me.heron.safefoodscanner.barcode;
 
 import com.google.android.gms.vision.barcode.Barcode;
 

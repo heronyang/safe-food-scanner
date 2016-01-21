@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package me.heron.safefoodscanner;
+package me.heron.safefoodscanner.barcode;
 
 import android.util.Log;
 

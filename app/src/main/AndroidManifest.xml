@@ -24,7 +24,7 @@
             android:value="RKf2g03IfdsijesiiRfcolYmxBjcovOKgYmwSHXs" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,18 +33,18 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ResultActivity"
+            android:name=".activity.ResultActivity"
             android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="me.heron.safefoodscanner.MainActivity" />
+                android:value=".activity.MainActivity" />
         </activity>
         <activity
-            android:name=".ProductNotFoundActivity"
+            android:name=".activity.ProductNotFoundActivity"
             android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="me.heron.safefoodscanner.MainActivity" />
+                android:value=".activity.MainActivity" />
         </activity>
     </application>
 

@@ -1,4 +1,4 @@
-package me.heron.safefoodscanner;
+package me.heron.safefoodscanner.activity;
 
 /*
  * Copyright (C) The Android Open Source Project
@@ -43,6 +43,11 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
 
+import me.heron.safefoodscanner.Parse.ParseAPIAdaptor;
+import me.heron.safefoodscanner.Parse.ParseAPICallback;
+import me.heron.safefoodscanner.R;
+import me.heron.safefoodscanner.barcode.BarcodeDetectedCallback;
+import me.heron.safefoodscanner.barcode.BarcodeTrackerFactory;
 import me.heron.safefoodscanner.ui.camera.CameraSource;
 import me.heron.safefoodscanner.ui.camera.CameraSourcePreview;
 

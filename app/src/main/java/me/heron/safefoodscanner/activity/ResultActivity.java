@@ -1,4 +1,4 @@
-package me.heron.safefoodscanner;
+package me.heron.safefoodscanner.activity;
 
 import android.app.ActionBar;
 import android.content.Intent;
@@ -10,6 +10,8 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.google.android.gms.common.api.CommonStatusCodes;
+
+import me.heron.safefoodscanner.R;
 
 public class ResultActivity extends AppCompatActivity {
 

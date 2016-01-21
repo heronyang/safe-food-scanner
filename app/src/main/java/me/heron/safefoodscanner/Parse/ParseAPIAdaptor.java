@@ -1,4 +1,4 @@
-package me.heron.safefoodscanner;
+package me.heron.safefoodscanner.Parse;
 
 import android.util.Log;
 
@@ -13,7 +13,7 @@ public class ParseAPIAdaptor {
     private static final String TAG = "ParseAPIAdaptor";
     private static ParseAPICallback mParseAPICallback;
 
-    ParseAPIAdaptor(ParseAPICallback parseAPICallback) {
+    public ParseAPIAdaptor(ParseAPICallback parseAPICallback) {
         mParseAPICallback = parseAPICallback;
     }
 
