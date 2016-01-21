@@ -86,7 +86,7 @@ public class ResultActivity extends AppCompatActivity {
 
     private void showNotFoundResultLayout() {
         setResultTextViewToNotFound();
-        hideReportErrorButton();
+        setReportButtonText();
     }
 
     private void setResultTextViewToNotFound() {
@@ -97,10 +97,10 @@ public class ResultActivity extends AppCompatActivity {
 
     }
 
-    private void hideReportErrorButton() {
+    private void setReportButtonText() {
 
         Button reportErrorButton = (Button) findViewById(R.id.reportErrorButton);
-        reportErrorButton.setVisibility(View.GONE);
+        reportErrorButton.setText(R.string.helpUsButtonText);
 
     }
 

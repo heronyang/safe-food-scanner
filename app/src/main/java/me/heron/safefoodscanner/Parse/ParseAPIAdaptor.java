@@ -39,11 +39,12 @@ public class ParseAPIAdaptor {
                     mParseAPICallback.checkedIsTransFatContained(isTransFatContained, name, parseId);
 
                 } else {
+
                     Log.d(TAG, "Error: " + e.getMessage());
                     if (e.getCode() == ParseException.OBJECT_NOT_FOUND) {
                         mParseAPICallback.productNotFound(barcode);
-                    } else {
                     }
+
                 }
             }
         });
