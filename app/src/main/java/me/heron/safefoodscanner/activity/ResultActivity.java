@@ -12,12 +12,13 @@ import android.widget.TextView;
 
 import com.parse.ParseObject;
 
+import me.heron.safefoodscanner.Constants;
 import me.heron.safefoodscanner.Parse.ParseProxyObject;
 import me.heron.safefoodscanner.R;
 
 public class ResultActivity extends AppCompatActivity {
 
-    private static final String TAG = "ResultActivity";
+    private static final String TAG = Constants.LOG_PREFIX + "ResultAct";
 
     private boolean isProductNotFound;
 

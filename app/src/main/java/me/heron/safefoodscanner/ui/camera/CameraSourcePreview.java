@@ -33,7 +33,7 @@ import me.heron.safefoodscanner.Constants;
 
 public class CameraSourcePreview extends ViewGroup {
 
-    private static final String TAG = "CameraSourcePreview";
+    private static final String TAG = Constants.LOG_PREFIX + "CameraSourcePreview";
 
     private Context mContext;
     private SurfaceView mSurfaceView;

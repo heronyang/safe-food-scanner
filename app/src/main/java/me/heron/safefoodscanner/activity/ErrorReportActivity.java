@@ -8,12 +8,14 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.parse.GetCallback;
 import com.parse.ParseException;
@@ -22,6 +24,8 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ProgressCallback;
 import com.parse.SaveCallback;
+
+import org.w3c.dom.Text;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -35,7 +39,7 @@ import me.heron.safefoodscanner.R;
 
 public class ErrorReportActivity extends AppCompatActivity {
 
-    private static final String TAG = "ErrorReportActivity";
+    private static final String TAG = Constants.LOG_PREFIX + "ErrorReportAct";
 
     private static final int REQUEST_IMAGE_CAPTURE = 23;
 
@@ -193,11 +197,15 @@ public class ErrorReportActivity extends AppCompatActivity {
                             Log.d(TAG, e.getMessage());
                         }
 
+                        deleteDeviceSavedImage();
+                        showUploadComplete();
                         finish();
+
                     }
                 }, new ProgressCallback() {
                     public void done(Integer percentDone) {
                         Log.d(TAG, "progress callback: " + percentDone);
+                        updateProgress(percentDone);
                     }
                 }
         );
@@ -205,6 +213,48 @@ public class ErrorReportActivity extends AppCompatActivity {
         return file;
 
     }
+
+    private void deleteDeviceSavedImage() {
+
+        File file = new File(tempImageFilepath);
+        boolean deleted = file.delete();
+
+        if (deleted) {
+            Log.d(TAG, "temp file is deleted");
+        } else {
+            String reason = getReasonForFileDeletionFailure(file);
+            Log.e(TAG, "can't delete temp file: " + reason);
+        }
+
+    }
+
+    private String getReasonForFileDeletionFailure(File file) {
+
+        try {
+            if (!file.exists()) {
+                return "It doesn't exist in the first place.";
+            } else if (file.isDirectory() && file.list().length > 0) {
+                return "It's a directory and it's not empty.";
+            } else {
+                return "Somebody else has it open, we don't have write permissions, or somebody stole my disk.";
+            }
+        } catch (SecurityException e) {
+            return "Security exception error.";
+        }
+
+    }
+
+    private void showUploadComplete() {
+        Snackbar.make(findViewById(android.R.id.content), R.string.uploadCompletedText, Snackbar.LENGTH_LONG).show();
+    }
+
+    private void updateProgress(Integer percentDone) {
+
+        TextView reportErrorTextView = (TextView) findViewById(R.id.reportErrorTextView);
+        reportErrorTextView.setText(getString(R.string.uploadingText) + percentDone + "%");
+
+    }
+
 
     private void saveNewUnverifiedProductItem() {
 

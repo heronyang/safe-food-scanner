@@ -22,6 +22,8 @@ import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Tracker;
 import com.google.android.gms.vision.barcode.Barcode;
 
+import me.heron.safefoodscanner.Constants;
+
 /**
  * Generic tracker which is used for tracking or reading a barcode (and can really be used for
  * any type of item).  This is used to receive newly detected items, add a graphical representation
@@ -30,7 +32,7 @@ import com.google.android.gms.vision.barcode.Barcode;
  */
 class BarcodeGraphicTracker extends Tracker<Barcode> {
 
-    private static final String TAG = "BarcodeGraphicTracker";
+    private static final String TAG = Constants.LOG_PREFIX + "BarcodeGraphicTracker";
     private BarcodeDetectedCallback mBarcodeDetectedCallback;
 
     BarcodeGraphicTracker(BarcodeDetectedCallback barcodeDetectedCallback) {

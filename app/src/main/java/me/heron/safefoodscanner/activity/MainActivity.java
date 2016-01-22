@@ -28,10 +28,9 @@ import android.hardware.Camera;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -61,7 +60,7 @@ import me.heron.safefoodscanner.ui.camera.CameraSourcePreview;
 
 public class MainActivity extends AppCompatActivity implements BarcodeDetectedCallback, ParseAPICallback {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = Constants.LOG_PREFIX + "MainAct";
 
     // intent request code to handle updating play services if needed.
     private static final int RC_HANDLE_GMS = 9001;
@@ -101,6 +100,16 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
         setContentView(R.layout.barcode_capture);
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
 
+        showHint();
+
+    }
+
+    private void showHint() {
+        Snackbar.make(findViewById(android.R.id.content), R.string.scanBarcodeText, Snackbar.LENGTH_INDEFINITE).show();
+    }
+
+    private void showLoading() {
+        Snackbar.make(findViewById(android.R.id.content), R.string.loadingWaitText, Snackbar.LENGTH_INDEFINITE).show();
     }
 
     private void setupCameraPermission() {
@@ -230,6 +239,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     protected void onResume() {
         super.onResume();
         startCameraSource();
+        showHint();
     }
 
     /**
@@ -327,6 +337,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
         if (!isFreeForChecking) {
             freeLayoutForChecking();
+            showLoading();
             buzz();
             saveBarcodeValue(barcode);
             analysisBarcode(barcode);

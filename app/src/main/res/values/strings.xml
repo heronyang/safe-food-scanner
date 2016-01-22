@@ -1,16 +1,20 @@
 <resources>
-    <string name="app_name">SafeFoodScanner</string>
-    <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
+    <string name="app_name">食時掃讀</string>
+    <string name="permission_camera_rationale">需要相機的授權</string>
     <string name="ok">OK</string>
-    <string name="low_storage_error">Face detector dependencies cannot be downloaded due to low device storage</string>
-    <string name="no_camera_permission">This application cannot run because it does not have the camera permission. The application will now exit.</string>
-    <string name="title_activity_product_not_found">ProductNotFoundActivity</string>
+    <string name="low_storage_error">裝置儲存空間不夠</string>
+    <string name="no_camera_permission">無相機授權，離開中</string>
     <string name="scanAgainText">再掃一次</string>
     <string name="reportErrorText">回報錯誤</string>
     <string name="productNotFoundText">查無此產品</string>
     <string name="helpUsButtonText">協助我們</string>
-    <string name="WaitText">Please Wait...</string>
+    <string name="WaitText">請稍等…</string>
     <string name="networkFailureText">請檢查網路連線</string>
     <string name="processingText">讀取中</string>
     <string name="tempImageFilename">SafeFoodScanner_Temp</string>
+    <string name="scanBarcodeText">請掃描商品條碼</string>
+    <string name="photoReviewContentDescription">Photo Review</string>
+    <string name="uploadingText">上載中…</string>
+    <string name="uploadCompletedText">相片上載完成，謝謝您</string>
+    <string name="loadingWaitText">分析中，請稍等…</string>
 </resources>

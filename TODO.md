@@ -1,2 +1,3 @@
 - solve network error issue
 - let barcode as object passing through activities
+- delete the image

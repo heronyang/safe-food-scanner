@@ -9,11 +9,13 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
+import me.heron.safefoodscanner.Constants;
+
 public class ParseAPIAdaptor {
 
     // TODO: detect network availability
 
-    private static final String TAG = "ParseAPIAdaptor";
+    private static final String TAG = Constants.LOG_PREFIX + "ParseAPIAdaptor";
     private static ParseAPICallback mParseAPICallback;
 
     public ParseAPIAdaptor(ParseAPICallback parseAPICallback) {
