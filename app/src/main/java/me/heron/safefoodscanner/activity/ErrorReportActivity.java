@@ -66,7 +66,26 @@ public class ErrorReportActivity extends AppCompatActivity {
 
         setupActionBar();
         getIntentExtras();
-        startTakePicture();
+        showIntroductionThenStartTakePicture();
+
+    }
+
+    private void showIntroductionThenStartTakePicture() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setMessage(getString(R.string.takePictureIntroductionMessage))
+                .setTitle(getString(R.string.takePictureIntroductionTitle));
+
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                startTakePicture();
+            }
+        });
+
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
 
     }
 

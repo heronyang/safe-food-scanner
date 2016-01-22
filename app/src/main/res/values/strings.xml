@@ -17,4 +17,9 @@
     <string name="uploadingText">上載中…</string>
     <string name="uploadCompletedText">相片上載完成，謝謝您</string>
     <string name="loadingWaitText">分析中，請稍等…</string>
+    <string name="isTransFatContainedText">含有反式脂肪</string>
+    <string name="isNotTransFatContainedText">不含有反式脂肪</string>
+    <string name="resultImageContentDescription">Result Image</string>
+    <string name="takePictureIntroductionMessage">請照一張「食品成分」的相片協助我們建立資料</string>
+    <string name="takePictureIntroductionTitle">謝謝</string>
 </resources>

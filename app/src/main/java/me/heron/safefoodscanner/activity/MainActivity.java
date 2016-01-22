@@ -53,6 +53,7 @@ import me.heron.safefoodscanner.Parse.ParseAPIAdaptor;
 import me.heron.safefoodscanner.Parse.ParseAPICallback;
 import me.heron.safefoodscanner.Parse.ParseProxyObject;
 import me.heron.safefoodscanner.R;
+import me.heron.safefoodscanner.TestActivity;
 import me.heron.safefoodscanner.barcode.BarcodeDetectedCallback;
 import me.heron.safefoodscanner.barcode.BarcodeTrackerFactory;
 import me.heron.safefoodscanner.ui.camera.CameraSource;

@@ -2,12 +2,15 @@ package me.heron.safefoodscanner.activity;
 
 import android.app.ActionBar;
 import android.content.Intent;
+import android.graphics.Color;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.parse.ParseObject;
@@ -75,30 +78,68 @@ public class ResultActivity extends AppCompatActivity {
 
     private void showNormalResultLayout() {
 
-        boolean isSafe = !productItem.getBoolean("isTransFatContained");
         String name = productItem.getString("name");
+        boolean isSafe = !productItem.getBoolean("isTransFatContained");
+
+        setResultTextView(name, isSafe);
+        setResultImageView(isSafe);
+
+    }
+
+    private void setResultTextView(String name, boolean isSafe) {
+
+        int colorHappy = ContextCompat.getColor(this, R.color.colorHappy);
+        int colorSad = ContextCompat.getColor(this, R.color.colorSad);
+
+        TextView resultTextView = (TextView) findViewById(R.id.resultTextView);
 
         String resultText = name + " ";
         if (isSafe) {
-            resultText += "Safe";
+            resultText += getString(R.string.isNotTransFatContainedText);
+            resultTextView.setTextColor(colorHappy);
         } else {
-            resultText += "Not Safe";
+            resultText += getString(R.string.isTransFatContainedText);
+            resultTextView.setTextColor(colorSad);
         }
-        TextView resultTextView = (TextView) findViewById(R.id.resultTextView);
+
         resultTextView.setText(resultText);
+
+    }
+
+    private void setResultImageView(boolean isSafe) {
+
+        ImageView resultImageView = (ImageView) findViewById(R.id.resultImageView);
+        if (isSafe) {
+            resultImageView.setImageResource(R.drawable.happy_face);
+        } else {
+            resultImageView.setImageResource(R.drawable.sad_face);
+        }
+
+    }
+
+    private void setResultImageViewToNotFound() {
+
+        ImageView resultImageView = (ImageView) findViewById(R.id.resultImageView);
+        resultImageView.setImageResource(R.drawable.heart);
 
     }
 
     private void showNotFoundResultLayout() {
+
         setResultTextViewToNotFound();
+        setResultImageViewToNotFound();
         setReportButtonText();
+
     }
 
     private void setResultTextViewToNotFound() {
 
+        int colorHeart = ContextCompat.getColor(this, R.color.colorHeart);
+
         String resultText = getString(R.string.productNotFoundText);
         TextView resultTextView = (TextView) findViewById(R.id.resultTextView);
         resultTextView.setText(resultText);
+        resultTextView.setTextColor(colorHeart);
 
     }
 
