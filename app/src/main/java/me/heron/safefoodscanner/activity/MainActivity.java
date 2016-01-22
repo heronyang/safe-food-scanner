@@ -53,7 +53,6 @@ import me.heron.safefoodscanner.Parse.ParseAPIAdaptor;
 import me.heron.safefoodscanner.Parse.ParseAPICallback;
 import me.heron.safefoodscanner.Parse.ParseProxyObject;
 import me.heron.safefoodscanner.R;
-import me.heron.safefoodscanner.TestActivity;
 import me.heron.safefoodscanner.barcode.BarcodeDetectedCallback;
 import me.heron.safefoodscanner.barcode.BarcodeTrackerFactory;
 import me.heron.safefoodscanner.ui.camera.CameraSource;
@@ -71,8 +70,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     // result of the request.
     private static final int RC_HANDLE_CAMERA_PERMISSION = 2;
     private static final int REQUEST_CODE_RESULT_ACTIVITY = 20;
-
-    private static final String BarcodeObject = "Barcode";
 
     private CameraSource mCameraSource;
     private CameraSourcePreview mPreview;

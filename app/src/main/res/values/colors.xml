@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimary">#cca50a</color>
+    <color name="colorPrimaryDark">#4a3d08</color>
     <color name="colorAccent">#FF4081</color>
 
     <color name="colorHappy">#8ac249</color>
     <color name="colorSad">#d22e2e</color>
     <color name="colorHeart">#f9cd1c</color>
+
+    <color name="foreground">#f9cd1c</color>
+    <color name="background">#4a3d08</color>
+    <color name="background2">#121212</color>
 </resources>
