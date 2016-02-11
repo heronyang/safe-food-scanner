@@ -41,6 +41,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
@@ -52,6 +53,7 @@ import me.heron.safefoodscanner.Constants;
 import me.heron.safefoodscanner.Parse.ParseAPIAdaptor;
 import me.heron.safefoodscanner.Parse.ParseAPICallback;
 import me.heron.safefoodscanner.Parse.ParseProxyObject;
+import me.heron.safefoodscanner.PlayServicesUtils;
 import me.heron.safefoodscanner.R;
 import me.heron.safefoodscanner.barcode.BarcodeDetectedCallback;
 import me.heron.safefoodscanner.barcode.BarcodeTrackerFactory;
@@ -85,13 +87,19 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
         super.onCreate(savedInstanceState);
 
-        setupLayout();
+        if (!PlayServicesUtils.checkPlayServices(this)) {
+            return;
+        }
+
         setupCameraPermission();
         setupHelpers();
+        setupLayout();
 
         checkNetworkAvailable();
 
     }
+
+
 
     private void setupLayout() {
 
@@ -206,15 +214,13 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
     private void setupCamera(BarcodeDetector barcodeDetector) {
 
-        CameraSource.Builder builder = new CameraSource.Builder(getApplicationContext(), barcodeDetector)
-                .setFacing(CameraSource.CAMERA_FACING_BACK)
-                .setRequestedPreviewSize(1600, 1024)
-                .setRequestedFps(15.0f);
+        CameraSource.Builder builder = new CameraSource.Builder(getApplicationContext(), barcodeDetector);
 
         mCameraSource = builder
-                .setFlashMode(null)
+                .setFlashMode(Camera.Parameters.FLASH_MODE_OFF)
                 .setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)
                 .build();
+        mCameraSource.autoFocus(null);
 
     }
 
@@ -235,9 +241,16 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
      */
     @Override
     protected void onResume() {
+
         super.onResume();
+
+        if (!PlayServicesUtils.checkPlayServices(this)) {
+            return;
+        }
+
         startCameraSource();
         showHint();
+
     }
 
     /**
@@ -304,8 +317,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
     private void startCameraSource() throws SecurityException {
 
-        checkPlayServicesAvailable();;
-
         if (mCameraSource != null) {
             try {
                 mPreview.start(mCameraSource);
@@ -314,18 +325,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
                 mCameraSource.release();
                 mCameraSource = null;
             }
-        }
-
-    }
-
-    private void checkPlayServicesAvailable() {
-
-        int code = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(
-                getApplicationContext());
-        if (code != ConnectionResult.SUCCESS) {
-            Dialog dlg =
-                    GoogleApiAvailability.getInstance().getErrorDialog(this, code, RC_HANDLE_GMS);
-            dlg.show();
         }
 
     }

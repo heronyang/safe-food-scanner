@@ -47,6 +47,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import me.heron.safefoodscanner.Constants;
+
 // Note: This requires Google Play Services 8.1 or higher, due to using indirect byte buffers for
 // storing images.
 
@@ -131,9 +133,9 @@ public class CameraSource {
 
     // These values may be requested by the caller.  Due to hardware limitations, we may need to
     // select close, but not exactly the same values for these.
-    private float mRequestedFps = 30.0f;
-    private int mRequestedPreviewWidth = 1024;
-    private int mRequestedPreviewHeight = 768;
+    private float mRequestedFps = 15.0f;
+    private int mRequestedPreviewWidth = 1280;
+    private int mRequestedPreviewHeight = 720;
 
 
     private String mFocusMode = null;
@@ -758,6 +760,8 @@ public class CameraSource {
             throw new RuntimeException("Could not find suitable preview frames per second range.");
         }
 
+        Log.e(TAG, "picture size:" + pictureSize.getWidth() + "," + pictureSize.getHeight());
+
         Camera.Parameters parameters = camera.getParameters();
 
         parameters.setPictureSize(pictureSize.getWidth(), pictureSize.getHeight());
@@ -770,11 +774,15 @@ public class CameraSource {
         setRotation(camera, parameters, requestedCameraId);
 
         if (mFocusMode != null) {
-            if (parameters.getSupportedFocusModes().contains(
-                    mFocusMode)) {
+            if (parameters.getSupportedFocusModes().contains(mFocusMode)) {
                 parameters.setFocusMode(mFocusMode);
             } else {
                 Log.i(TAG, "Camera focus mode: " + mFocusMode + " is not supported on this device.");
+                final String macroFocusMode = Camera.Parameters.FOCUS_MODE_MACRO;
+                if (parameters.getSupportedFocusModes().contains(macroFocusMode)) {
+                    parameters.setFocusMode(macroFocusMode);
+                    Log.i(TAG, "Use macro focus mode instead.");
+                }
             }
         }
 
@@ -897,25 +905,21 @@ public class CameraSource {
      * preview images may be distorted on some devices.
      */
     private static List<SizePair> generateValidPreviewSizeList(Camera camera) {
+
         Camera.Parameters parameters = camera.getParameters();
+
         List<android.hardware.Camera.Size> supportedPreviewSizes =
                 parameters.getSupportedPreviewSizes();
         List<android.hardware.Camera.Size> supportedPictureSizes =
                 parameters.getSupportedPictureSizes();
         List<SizePair> validPreviewSizes = new ArrayList<>();
-        for (android.hardware.Camera.Size previewSize : supportedPreviewSizes) {
-            float previewAspectRatio = (float) previewSize.width / (float) previewSize.height;
 
-            // By looping through the picture sizes in order, we favor the higher resolutions.
-            // We choose the highest resolution in order to support taking the full resolution
-            // picture later.
-            for (android.hardware.Camera.Size pictureSize : supportedPictureSizes) {
-                float pictureAspectRatio = (float) pictureSize.width / (float) pictureSize.height;
-                if (Math.abs(previewAspectRatio - pictureAspectRatio) < ASPECT_RATIO_TOLERANCE) {
-                    validPreviewSizes.add(new SizePair(previewSize, pictureSize));
-                    break;
-                }
-            }
+        for (android.hardware.Camera.Size previewSize : supportedPreviewSizes) {
+
+            int width = Constants.BARCODE_PICTURE_WIDTH, height = Constants.BARCODE_PICTURE_HEIGHT;
+            Camera.Size pictureSize = camera.new Size(width, height);
+            validPreviewSizes.add(new SizePair(previewSize, pictureSize));
+
         }
 
         // If there are no picture sizes with the same aspect ratio as any preview sizes, allow all
@@ -1198,4 +1202,3 @@ public class CameraSource {
         }
     }
 }
-
