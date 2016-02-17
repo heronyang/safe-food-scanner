@@ -21,6 +21,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Build;
@@ -29,6 +30,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresPermission;
 import android.support.annotation.StringDef;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -160,6 +162,64 @@ public class CameraSource {
      * native code later (avoids a potential copy).
      */
     private Map<byte[], ByteBuffer> mBytesToByteBuffer = new HashMap<>();
+
+
+    public void focusOnTouch(MotionEvent event) {
+        if (mCamera != null ) {
+
+            Camera.Parameters parameters = mCamera.getParameters();
+            if (parameters.getMaxNumMeteringAreas() > 0){
+                Log.i(TAG,"fancy !");
+                Rect rect = calculateFocusArea(event.getX(), event.getY());
+
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+                List<Camera.Area> meteringAreas = new ArrayList<>();
+                meteringAreas.add(new Camera.Area(rect, 800));
+                parameters.setFocusAreas(meteringAreas);
+
+                mCamera.setParameters(parameters);
+                mCamera.autoFocus(mAutoFocusTakePictureCallback);
+            }else {
+                mCamera.autoFocus(mAutoFocusTakePictureCallback);
+            }
+        }
+    }
+
+    private Rect calculateFocusArea(float x, float y) {
+        int width = Constants.BARCODE_PICTURE_WIDTH, height = Constants.BARCODE_PICTURE_WIDTH;
+        int left = clamp(Float.valueOf((x / width) * 2000 - 1000).intValue(), Constants.FOCUS_AREA_SIZE);
+        int top = clamp(Float.valueOf((y / height) * 2000 - 1000).intValue(), Constants.FOCUS_AREA_SIZE);
+
+        return new Rect(left, top, left + Constants.FOCUS_AREA_SIZE, top + Constants.FOCUS_AREA_SIZE);
+    }
+
+    private int clamp(int touchCoordinateInCameraReper, int focusAreaSize) {
+        int result;
+        if (Math.abs(touchCoordinateInCameraReper)+focusAreaSize/2>1000){
+            if (touchCoordinateInCameraReper>0){
+                result = 1000 - focusAreaSize/2;
+            } else {
+                result = -1000 + focusAreaSize/2;
+            }
+        } else{
+            result = touchCoordinateInCameraReper - focusAreaSize/2;
+        }
+        return result;
+    }
+
+    private Camera.AutoFocusCallback mAutoFocusTakePictureCallback = new Camera.AutoFocusCallback() {
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+            if (success) {
+                // do something...
+                Log.i("tap_to_focus","success!");
+            } else {
+                // do something...
+                Log.i("tap_to_focus","fail!");
+            }
+        }
+    };
+
 
     //==============================================================================================
     // Builder

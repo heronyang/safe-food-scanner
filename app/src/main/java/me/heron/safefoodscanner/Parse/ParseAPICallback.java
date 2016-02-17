@@ -4,6 +4,6 @@ import com.google.android.gms.vision.barcode.Barcode;
 import com.parse.ParseObject;
 
 public interface ParseAPICallback {
-    public void checkedIsTransFatContained(ParseObject productItem);
-    public void productNotFound(Barcode barcode);
+    void checkedIsTransFatContained(ParseObject productItem);
+    void productNotFound(Barcode barcode);
 }

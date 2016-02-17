@@ -18,7 +18,6 @@ package me.heron.safefoodscanner.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,20 +27,16 @@ import android.hardware.Camera;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Looper;
+import android.os.Message;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
-import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
@@ -64,19 +59,12 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
     private static final String TAG = Constants.LOG_PREFIX + "MainAct";
 
-    // intent request code to handle updating play services if needed.
-    private static final int RC_HANDLE_GMS = 9001;
-
-    // permission request codes need to be < 256, a
-    // app-defined int constant. The callback method gets the
-    // result of the request.
     private static final int RC_HANDLE_CAMERA_PERMISSION = 2;
     private static final int REQUEST_CODE_RESULT_ACTIVITY = 20;
 
     private CameraSource mCameraSource;
     private CameraSourcePreview mPreview;
 
-    private ScaleGestureDetector scaleGestureDetector;
     private ParseAPIAdaptor parseAPIAdaptor;
 
     private boolean isFreeForChecking = false;
@@ -98,7 +86,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
         checkNetworkAvailable();
 
     }
-
 
 
     private void setupLayout() {
@@ -131,14 +118,13 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
     private void setupHelpers() {
 
-        scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
         parseAPIAdaptor = new ParseAPIAdaptor(this);
 
     }
 
     private void checkNetworkAvailable() {
         if (!isNetworkAvailable()) {
-            Toast.makeText(getApplicationContext(), R.string.networkFailureText, Toast.LENGTH_LONG).show();
+            showNoNetworkError();
         }
     }
 
@@ -160,28 +146,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
         if (!ActivityCompat.shouldShowRequestPermissionRationale(this,
                 Manifest.permission.CAMERA)) {
             ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERMISSION);
-            return;
         }
-
-        final Activity thisActivity = this;
-
-        View.OnClickListener listener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ActivityCompat.requestPermissions(thisActivity, permissions,
-                        RC_HANDLE_CAMERA_PERMISSION);
-            }
-        };
-
-        Log.d(TAG, String.valueOf(R.string.permission_camera_rationale));
-
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent e) {
-
-        boolean b = scaleGestureDetector.onTouchEvent(e);
-        return b || super.onTouchEvent(e);
 
     }
 
@@ -218,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
         mCameraSource = builder
                 .setFlashMode(Camera.Parameters.FLASH_MODE_OFF)
-                .setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)
+                .setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO)
                 .build();
         mCameraSource.autoFocus(null);
 
@@ -231,14 +196,10 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
         if (hasLowStorage) {
             Toast.makeText(this, R.string.low_storage_error, Toast.LENGTH_LONG).show();
-            Log.w(TAG, getString(R.string.low_storage_error));
         }
 
     }
 
-    /**
-     * Restarts the camera.
-     */
     @Override
     protected void onResume() {
 
@@ -253,9 +214,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
     }
 
-    /**
-     * Stops the camera.
-     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -264,10 +222,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
         }
     }
 
-    /**
-     * Releases the resources associated with the camera source, the associated detectors, and the
-     * rest of the processing pipeline.
-     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -315,6 +269,30 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
     }
 
+    private void showNoNetworkError() {
+
+        final Activity activity = this;
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        finish();
+                    }
+                };
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                builder.setTitle("Error")
+                        .setMessage(R.string.no_network_connection)
+                        .setPositiveButton(R.string.ok, listener)
+                        .show();
+
+            }
+        });
+
+    }
+
     private void startCameraSource() throws SecurityException {
 
         if (mCameraSource != null) {
@@ -333,11 +311,15 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
     public void getBarcode(Barcode barcode) {
 
         if (!isFreeForChecking) {
+
             freeLayoutForChecking();
             showLoading();
             buzz();
+
+            checkNetworkAvailable();
             saveBarcodeValue(barcode);
             analysisBarcode(barcode);
+
         }
 
     }
@@ -410,60 +392,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
         intent.putExtra("barcodeValue", barcodeValue);
         startActivityForResult(intent, REQUEST_CODE_RESULT_ACTIVITY);
 
-    }
-
-    private class ScaleListener implements ScaleGestureDetector.OnScaleGestureListener {
-
-        /**
-         * Responds to scaling events for a gesture in progress.
-         * Reported by pointer motion.
-         *
-         * @param detector The detector reporting the event - use this to
-         *                 retrieve extended info about event state.
-         * @return Whether or not the detector should consider this event
-         * as handled. If an event was not handled, the detector
-         * will continue to accumulate movement until an event is
-         * handled. This can be useful if an application, for example,
-         * only wants to update scaling factors if the change is
-         * greater than 0.01.
-         */
-        @Override
-        public boolean onScale(ScaleGestureDetector detector) {
-            return false;
-        }
-
-        /**
-         * Responds to the beginning of a scaling gesture. Reported by
-         * new pointers going down.
-         *
-         * @param detector The detector reporting the event - use this to
-         *                 retrieve extended info about event state.
-         * @return Whether or not the detector should continue recognizing
-         * this gesture. For example, if a gesture is beginning
-         * with a focal point outside of a region where it makes
-         * sense, onScaleBegin() may return false to ignore the
-         * rest of the gesture.
-         */
-        @Override
-        public boolean onScaleBegin(ScaleGestureDetector detector) {
-            return true;
-        }
-
-        /**
-         * Responds to the end of a scale gesture. Reported by existing
-         * pointers going up.
-         * <p/>
-         * Once a scale has ended, {@link ScaleGestureDetector#getFocusX()}
-         * and {@link ScaleGestureDetector#getFocusY()} will return focal point
-         * of the pointers remaining on the screen.
-         *
-         * @param detector The detector reporting the event - use this to
-         *                 retrieve extended info about event state.
-         */
-        @Override
-        public void onScaleEnd(ScaleGestureDetector detector) {
-            mCameraSource.doZoom(detector.getScaleFactor());
-        }
     }
 
 }

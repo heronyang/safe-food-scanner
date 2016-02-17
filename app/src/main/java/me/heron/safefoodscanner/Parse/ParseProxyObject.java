@@ -14,8 +14,6 @@ import java.util.HashMap;
 public class ParseProxyObject implements Serializable {
 
 
-    public static final String PARSE_LOCAL_OBJECT = "parse_local_object";
-
     private HashMap<String, Object> values = new HashMap<String, Object>();
     private HashMap<String, String> fileUrls = new HashMap<String, String>();
     private HashMap<String, double[]> geoPoints = new HashMap<String, double[]>();
