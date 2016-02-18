@@ -49,6 +49,11 @@ public class CameraSourcePreview extends ViewGroup {
         mSurfaceAvailable = false;
 
         setupSurfaceView();
+        setupOnTouchListener();
+
+    }
+
+    private void setupOnTouchListener() {
 
         this.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -143,8 +148,6 @@ public class CameraSourcePreview extends ViewGroup {
         for (int i = 0; i < getChildCount(); ++i) {
             getChildAt(i).layout(0, 0, width, height);
         }
-
-        Log.d(TAG, "height, width = " + width + ", " + height);
 
         startIfReady();
 

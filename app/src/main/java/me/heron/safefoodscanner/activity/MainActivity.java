@@ -27,8 +27,6 @@ import android.hardware.Camera;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Looper;
-import android.os.Message;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -184,6 +182,9 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
         mCameraSource = builder
                 .setFlashMode(Camera.Parameters.FLASH_MODE_OFF)
                 .setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO)
+                .setRequestedFps(Constants.BARCODE_DEFAULT_REQUESTED_FPS)
+                .setRequestedPreviewSize(Constants.BARCODE_DEFAULT_PICTURE_WIDTH, Constants.BARCODE_DEFAULT_PICTURE_HEIGHT)
+                .setFacing(Camera.CameraInfo.CAMERA_FACING_BACK)
                 .build();
         mCameraSource.autoFocus(null);
 
@@ -262,7 +263,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Error")
+        builder.setTitle(R.string.error_dialog_title)
                 .setMessage(R.string.no_camera_permission)
                 .setPositiveButton(R.string.ok, listener)
                 .show();
@@ -283,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
                 };
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                builder.setTitle("Error")
+                builder.setTitle(R.string.error_dialog_title)
                         .setMessage(R.string.no_network_connection)
                         .setPositiveButton(R.string.ok, listener)
                         .show();
@@ -316,8 +317,9 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
             showLoading();
             buzz();
 
-            checkNetworkAvailable();
             saveBarcodeValue(barcode);
+
+            checkNetworkAvailable();
             analysisBarcode(barcode);
 
         }
@@ -343,8 +345,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
     private void analysisBarcode(Barcode barcode) {
 
-        showProcessingLayout();
-
         parseAPIAdaptor.checkIsTransFatContained(barcode);
 
     }
@@ -358,9 +358,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
         super.onActivityResult(requestCode, resultCode, data);
 
-    }
-
-    private void showProcessingLayout() {
     }
 
     @Override
