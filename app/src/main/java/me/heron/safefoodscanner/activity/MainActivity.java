@@ -181,12 +181,10 @@ public class MainActivity extends AppCompatActivity implements BarcodeDetectedCa
 
         mCameraSource = builder
                 .setFlashMode(Camera.Parameters.FLASH_MODE_OFF)
-                .setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO)
                 .setRequestedFps(Constants.BARCODE_DEFAULT_REQUESTED_FPS)
                 .setRequestedPreviewSize(Constants.BARCODE_DEFAULT_PICTURE_WIDTH, Constants.BARCODE_DEFAULT_PICTURE_HEIGHT)
                 .setFacing(Camera.CameraInfo.CAMERA_FACING_BACK)
                 .build();
-        mCameraSource.autoFocus(null);
 
     }
 

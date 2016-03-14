@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import me.heron.safefoodscanner.Constants;
 
@@ -63,11 +64,7 @@ public class CameraSource implements Camera.AutoFocusCallback {
     @Override
     public void onAutoFocus(boolean success, Camera camera) {
         Log.d(TAG, "Focal Length = " + camera.getParameters().getFocalLength());
-        Log.d(TAG, String.format("Auto focus success=%s. Focus mode: '%s'. Focused on: %s. Count: %d.",
-                success,
-                camera.getParameters().getFocusMode(),
-                camera.getParameters().getFocusAreas().get(0).rect.toString(),
-                camera.getParameters().getFocusAreas().size()));
+        Log.d(TAG, String.format("Auto focus success=%s. Focus mode: '%s'.", success, camera.getParameters().getFocusMode()));
     }
 
     @StringDef({
@@ -124,6 +121,11 @@ public class CameraSource implements Camera.AutoFocusCallback {
         Log.d(TAG, "touch on: " + event.getX() + "," + event.getY());
 
         if (mCamera != null ) {
+
+            String focusMode = getFocusMode();
+            if (focusMode != null && !focusMode.equals(Camera.Parameters.FLASH_MODE_AUTO)) {
+                return;
+            }
 
             List<Camera.Area> meteringAreas = new ArrayList<>();
             List<Camera.Area> focusAreas = new ArrayList<>();
@@ -471,9 +473,6 @@ public class CameraSource implements Camera.AutoFocusCallback {
 
         Camera.Parameters parameters = camera.getParameters();
 
-        int width = Constants.BARCODE_DEFAULT_PICTURE_WIDTH;
-        int height = Constants.BARCODE_DEFAULT_PICTURE_HEIGHT;
-
         mPreviewSize = sizePair.previewSize();
         parameters.setPictureSize(pictureSize.getWidth(), pictureSize.getHeight());
         parameters.setPreviewSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
@@ -487,15 +486,22 @@ public class CameraSource implements Camera.AutoFocusCallback {
         if (mFocusMode != null) {
             if (parameters.getSupportedFocusModes().contains(mFocusMode)) {
                 parameters.setFocusMode(mFocusMode);
+            }
+        } else {
+
+            Log.i(TAG, "Camera focus mode: " + mFocusMode + " is not supported on this device.");
+
+            List<String> supportedFocusModes = parameters.getSupportedFocusModes();
+            boolean hasContinuousFocus =  supportedFocusModes != null && supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            if (hasContinuousFocus) {
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+                Log.i(TAG, "Focus mode set to continuous.");
             } else {
-                Log.i(TAG, "Camera focus mode: " + mFocusMode + " is not supported on this device.");
-                final String macroFocusMode = Camera.Parameters.FOCUS_MODE_MACRO;
-                if (parameters.getSupportedFocusModes().contains(macroFocusMode)) {
-                    parameters.setFocusMode(macroFocusMode);
-                    Log.i(TAG, "Use macro focus mode instead.");
-                }
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+                Log.i(TAG, "Focus mode set to focus.");
             }
         }
+
 
         mFocusMode = parameters.getFocusMode();
 

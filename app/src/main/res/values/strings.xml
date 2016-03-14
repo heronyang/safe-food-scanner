@@ -24,4 +24,5 @@
     <string name="takePictureIntroductionTitle">謝謝</string>
     <string name="no_network_connection">沒有網路連線，離開中</string>
     <string name="error_dialog_title">錯誤</string>
+    <string name="hint_tap_to_focus">觸控螢幕對焦</string>
 </resources>
